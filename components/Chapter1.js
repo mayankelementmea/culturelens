@@ -1,250 +1,182 @@
 'use client'
 import { useState } from 'react'
+import { S } from './styles'
 
-const WORKSPACES = [
-  { id:'bullpen', label:'Open plan', desc:'Shared desks in open rows. High visibility. Minimal barriers between teams.' },
-  { id:'maze', label:'Partitioned', desc:'Cubicle or partition layout. Semi-private spaces. Moderate team interaction.' },
-  { id:'hive', label:'Activity-based', desc:'Mixed zones — collaboration spaces, focus pods, standing areas. Flexible seating.' },
-  { id:'fortress', label:'Private offices', desc:'Individual offices. Space allocated by seniority. Meetings by appointment.' },
-  { id:'hybrid', label:'Hybrid model', desc:'Hot-desking with bookable rooms. Some days remote, some onsite.' },
-  { id:'home', label:'Fully remote', desc:'Work from home or distributed locations. Digital-first communication.' },
+const STEPS = [
+  { id:'intro', type:'intro' },
+  { id:'decision_architecture', type:'single', label:'Decision architecture',
+    q:'When a significant strategic decision needs to be made, which of these most accurately describes how it happens here?',
+    opts:[
+      {id:'a',t:'One or two individuals decide. Others are informed afterwards.'},
+      {id:'b',t:'A small leadership group deliberates. The most senior person has the final call.'},
+      {id:'c',t:'Cross-functional input is gathered, but decision authority is clearly assigned.'},
+      {id:'d',t:'Decisions emerge through consensus. It can take time, but most people have a voice.'},
+      {id:'e',t:'It depends entirely on who is involved and what the issue is. There is no consistent pattern.'},
+    ]},
+  { id:'information_flow', type:'single', label:'Information architecture',
+    q:'How does critical business information — financial performance, strategic priorities, client issues — typically flow through the organisation?',
+    opts:[
+      {id:'a',t:'Leadership holds information closely. It reaches people on a need-to-know basis.'},
+      {id:'b',t:'Formal channels exist (town halls, reports) but real information travels through informal networks.'},
+      {id:'c',t:'Information is shared systematically through defined channels. Most people are reasonably well-informed.'},
+      {id:'d',t:'Radical transparency. Financials, strategy, and challenges are shared openly with everyone.'},
+      {id:'e',t:'Information flow is inconsistent. Some teams are well-informed, others operate in the dark.'},
+    ]},
+  { id:'crisis_response', type:'single', label:'Crisis behaviour',
+    q:'When the organisation faces an unexpected crisis — a major client loss, a market shift, a critical failure — what actually happens?',
+    opts:[
+      {id:'a',t:'The founder or CEO takes personal control. Normal processes are suspended until it is resolved.'},
+      {id:'b',t:'A war room forms. The right people are pulled in quickly regardless of hierarchy.'},
+      {id:'c',t:'Existing processes and escalation paths are followed. The system handles it.'},
+      {id:'d',t:'Blame is assigned before the problem is solved. People focus on self-protection.'},
+      {id:'e',t:'Paralysis. People wait for direction that comes slowly or not at all.'},
+    ]},
+  { id:'talent_philosophy', type:'single', label:'Talent philosophy',
+    q:'Which of these best describes how this organisation thinks about its people?',
+    opts:[
+      {id:'a',t:'People are loyal family members. Tenure and relationships matter most. We rarely let anyone go.'},
+      {id:'b',t:'People are the engine. We invest heavily in development and expect high performance in return.'},
+      {id:'c',t:'People are resources deployed against objectives. Performance is measured; underperformers are managed out.'},
+      {id:'d',t:'People are professionals trusted to manage themselves. Autonomy is high; oversight is light.'},
+      {id:'e',t:'It varies dramatically by department. There is no consistent people philosophy.'},
+    ]},
+  { id:'spectrums', type:'spectrums', label:'Strategic dimensions',
+    q:'Position your organisation on each of these strategic dimensions.',
+    sub:'These are not good/bad scales — every position has strategic implications.',
+    items:[
+      {id:'centralisation',l:'All authority sits at the top',r:'Authority is distributed to teams'},
+      {id:'speed_rigour',l:'Move slowly but get things right',r:'Move fast and course-correct'},
+      {id:'orientation',l:'Inward-looking, trust our own expertise',r:'Externally oriented, bring in outside input'},
+      {id:'stability_change',l:'Protect what works. Continuity valued.',r:'Continuously reinvent. Disruption is the norm.'},
+      {id:'individual_collective',l:'Individual stars rewarded and celebrated',r:'Team success recognised above individual'},
+      {id:'knowledge',l:'Knowledge lives in people\'s heads',r:'Knowledge is documented and systemised'},
+    ]},
+  { id:'capability_gaps', type:'multi', label:'Strategic capability gaps', max:5,
+    q:'If you could strengthen any five organisational capabilities overnight, which would most accelerate this organisation\'s strategic position?',
+    opts:['Decision speed at all levels','Ability to retain high performers','Cross-functional collaboration',
+      'Innovation and new revenue streams','Leadership succession depth','Customer intelligence and responsiveness',
+      'Clear accountability and follow-through','Ability to execute strategic change','Knowledge transfer and institutional memory',
+      'Performance differentiation and management','Employer brand and talent attraction','Technology adoption and digital capability',
+      'Middle management capability','Governance and risk management','Cultural clarity and alignment'].map((t,i)=>({id:'c'+i,t}))},
+  { id:'unwritten_rules', type:'multi', label:'Unwritten operating rules', max:99,
+    q:'Which of these unwritten rules operate in this organisation?',
+    sub:'The informal rules every new employee learns within their first three months.',
+    opts:[
+      {id:'r1',t:'Don\'t challenge a decision once it\'s been made by senior leadership'},
+      {id:'r2',t:'Relationships and loyalty matter more than formal qualifications'},
+      {id:'r3',t:'Being visibly present matters — perception of effort counts'},
+      {id:'r4',t:'Bad news is filtered before it reaches the top'},
+      {id:'r5',t:'Never go to your boss with a problem unless you have a solution'},
+      {id:'r6',t:'The formal process is slow — the real way to get things done is to know the right people'},
+      {id:'r7',t:'Taking a risk that fails is career-limiting, even if the logic was sound'},
+      {id:'r8',t:'Tenure and seniority carry more weight than competence in promotions'},
+      {id:'r9',t:'Stay in your lane — cross-departmental initiative is not rewarded'},
+      {id:'r10',t:'There is a "right way" to do things here, established long ago, that is rarely questioned'},
+      {id:'r11',t:'Overpromise and figure it out later — saying no is not acceptable'},
+      {id:'none',t:'None of these apply — the organisation operates largely as formally stated'},
+    ]},
 ]
-
-const SPECTRUMS = [
-  { id:'openness', label:'Transparency', left:'Information is closely held', right:'Information flows freely' },
-  { id:'energy', label:'Organisational energy', left:'Measured and reserved', right:'Visibly high-energy' },
-  { id:'formality', label:'Operating formality', left:'Formal protocols and hierarchy', right:'Informal and flat' },
-  { id:'pace', label:'Decision velocity', left:'Deliberate and cautious', right:'Rapid and decisive' },
-  { id:'warmth', label:'Interpersonal climate', left:'Transactional and professional', right:'Warm and relationship-driven' },
-]
-
-const DESK_ITEMS = [
-  { id:'standing', label:'Height-adjustable desk' },
-  { id:'privacy', label:'Privacy screen or partition' },
-  { id:'plant', label:'Natural elements' },
-  { id:'whiteboard', label:'Collaboration surface' },
-  { id:'photos', label:'Personal items on display' },
-  { id:'headphones', label:'Noise isolation' },
-  { id:'coffee', label:'Refreshment area nearby' },
-  { id:'monitors', label:'Premium technology setup' },
-  { id:'chair', label:'Ergonomic seating' },
-  { id:'door', label:'Closeable private space' },
-  { id:'teamtable', label:'Shared team workspace' },
-  { id:'deadlines', label:'Visual task management' },
-  { id:'awards', label:'Recognition display' },
-  { id:'quiet', label:'Designated quiet zone' },
-  { id:'books', label:'Learning resources' },
-]
-
-const REACTIONS = [
-  { id:'proud', label:'Proud', pos:true },
-  { id:'energised', label:'Energised', pos:true },
-  { id:'frustrated', label:'Frustrated', pos:false },
-  { id:'calm', label:'Focused', pos:true },
-  { id:'inspired', label:'Inspired', pos:true },
-  { id:'bored', label:'Disengaged', pos:false },
-  { id:'connected', label:'Connected', pos:true },
-  { id:'isolated', label:'Isolated', pos:false },
-  { id:'motivated', label:'Driven', pos:true },
-  { id:'stuck', label:'Constrained', pos:false },
-  { id:'grateful', label:'Valued', pos:true },
-  { id:'anxious', label:'Under pressure', pos:false },
-]
-
-const S = {
-  page: { minHeight:'100vh',background:'#F8F7F4',color:'#3D3A36',fontFamily:"'Poppins', sans-serif" },
-  inner: { maxWidth:640,margin:'0 auto',padding:'40px 24px' },
-  progress: { display:'flex',gap:3,marginBottom:48 },
-  bar: (active) => ({ flex:1,height:2,borderRadius:1,background:active?'#0A0A0A':'#E8E5E0',transition:'background 0.3s' }),
-  label: { fontSize:11,fontWeight:500,letterSpacing:'0.12em',textTransform:'uppercase',color:'#9B9690',marginBottom:16 },
-  h2: { fontSize:24,fontWeight:600,letterSpacing:'-0.02em',color:'#0A0A0A',marginBottom:8 },
-  sub: { fontSize:15,color:'#9B9690',marginBottom:32,lineHeight:1.6 },
-  grid: { display:'grid',gridTemplateColumns:'repeat(2,1fr)',gap:8 },
-  grid3: { display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:8 },
-  optBtn: (sel) => ({
-    background: sel ? '#fff' : '#fff',
-    border: sel ? '2px solid #2C5282' : '1px solid #E8E5E0',
-    borderRadius:8, padding:'20px 16px', textAlign:'left', cursor:'pointer',
-    transition:'all 0.2s', color:'#3D3A36',
-    boxShadow: sel ? '0 1px 8px rgba(44,82,130,0.1)' : 'none',
-  }),
-  optTitle: { fontSize:14,fontWeight:600,color:'#0A0A0A',marginBottom:4 },
-  optDesc: { fontSize:12,color:'#9B9690',lineHeight:1.5 },
-  specRow: { marginBottom:28 },
-  specLabel: (set) => ({ fontSize:13,fontWeight:500,color: set ? '#2C5282' : '#0A0A0A',marginBottom:8 }),
-  specPoles: { display:'flex',justifyContent:'space-between',marginTop:6 },
-  specPole: { fontSize:11,color:'#9B9690',maxWidth:'40%' },
-  tagBtn: (sel,pos) => ({
-    background: sel ? (pos ? '#F0FDF4' : '#FEF2F2') : '#fff',
-    border: sel ? `1.5px solid ${pos ? '#16A34A' : '#DC2626'}` : '1px solid #E8E5E0',
-    borderRadius:6, padding:'10px 8px', textAlign:'center', cursor:'pointer',
-    fontSize:13, fontWeight:500, color: sel ? (pos ? '#15803D' : '#B91C1C') : '#6B6660',
-    transition:'all 0.15s',
-    opacity: !sel && 'max' === 'max' ? 1 : 1,
-  }),
-  navRow: { display:'flex',justifyContent:'space-between',marginTop:48,paddingBottom:40 },
-  btnPrimary: (ok) => ({
-    background: ok ? '#0A0A0A' : '#E8E5E0', color: ok ? '#fff' : '#9B9690',
-    border:'none', padding:'12px 28px', borderRadius:6, cursor: ok ? 'pointer' : 'default',
-    fontFamily:"'Poppins'", fontSize:14, fontWeight:500, transition:'all 0.2s',
-  }),
-  btnSec: { background:'none',border:'1px solid #D4D0C8',color:'#6B6660',padding:'12px 24px',borderRadius:6,cursor:'pointer',fontFamily:"'Poppins'",fontSize:14 },
-  count: { fontSize:12,color:'#9B9690',marginTop:8 },
-}
 
 export default function Chapter1({ token, onComplete }) {
   const [step, setStep] = useState(0)
-  const [workspace, setWorkspace] = useState([])
-  const [spectrums, setSpectrums] = useState({})
-  const [deskItems, setDeskItems] = useState([])
-  const [reactions, setReactions] = useState([])
+  const [answers, setAnswers] = useState({})
   const [submitting, setSubmitting] = useState(false)
+  const cur = STEPS[step]
 
-  const toggle = (arr, set, id, max) => {
-    if (arr.includes(id)) set(arr.filter(x => x !== id))
-    else if (arr.length < max) set([...arr, id])
+  const setSingle = (id) => setAnswers(p=>({...p,[cur.id]:id}))
+  const toggleMulti = (id) => {
+    setAnswers(p => {
+      const arr = p[cur.id]||[]
+      if(id==='none') return {...p,[cur.id]:arr.includes('none')?[]:['none']}
+      const w = arr.filter(x=>x!=='none')
+      if(w.includes(id)) return {...p,[cur.id]:w.filter(x=>x!==id)}
+      if(cur.max && cur.max<99 && w.length>=cur.max) return p
+      return {...p,[cur.id]:[...w,id]}
+    })
   }
+  const setSpec = (id,val) => setAnswers(p=>({...p,spectrums:{...(p.spectrums||{}),[id]:parseInt(val)}}))
 
   const canGo = () => {
-    if (step === 0) return true
-    if (step === 1) return workspace.length > 0
-    if (step === 2) return Object.keys(spectrums).length === 5
-    if (step === 3) return deskItems.length === 5
-    if (step === 4) return reactions.length === 3
+    if(cur.type==='intro') return true
+    if(cur.type==='single') return !!answers[cur.id]
+    if(cur.type==='spectrums') return Object.keys(answers.spectrums||{}).length===cur.items.length
+    if(cur.type==='multi') return (answers[cur.id]||[]).length>0
     return false
   }
 
   const submit = async () => {
     setSubmitting(true)
     try {
-      const r = await fetch('/api/submit', {
-        method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({ token, chapter:'ch1', data:{
-          workspace_type: workspace.map(id => WORKSPACES.find(w=>w.id===id)?.label),
-          openness: spectrums.openness||5, energy: spectrums.energy||5,
-          formality: spectrums.formality||5, pace: spectrums.pace||5, warmth: spectrums.warmth||5,
-          desk_items: deskItems.map(id => DESK_ITEMS.find(d=>d.id===id)?.label),
-          reactions: reactions.map(id => REACTIONS.find(r=>r.id===id)?.label),
-        }})
-      })
+      const r = await fetch('/api/submit',{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({token,chapter:'ch1',data:answers})})
       const result = await r.json()
-      if (result.success) onComplete?.(result)
-    } catch(e) { console.error(e) }
+      if(result.success) onComplete?.(result)
+    } catch(e){console.error(e)}
     setSubmitting(false)
   }
 
   return (
-    <div style={S.page}>
-      <div style={S.inner}>
-        <div style={S.progress}>
-          {[0,1,2,3,4].map(i => <div key={i} style={S.bar(i <= step)} />)}
+    <div style={S.page}><div style={S.inner}>
+      <div style={S.progress}>{STEPS.map((_,i)=><div key={i} style={S.bar(i<=step)}/>)}</div>
+
+      {cur.type==='intro' && <div>
+        <p style={S.label}>Module 1 of 6</p>
+        <h2 style={{...S.h2,fontSize:26}}>How your organisation operates</h2>
+        <p style={S.body}>This module examines the operating model beneath the surface — how decisions are actually made, how information moves, how the organisation responds to pressure, and where authority truly sits.</p>
+        <div style={S.note}>Estimated time: 8 minutes. All responses are anonymised and reported only at the aggregate level.</div>
+      </div>}
+
+      {cur.type==='single' && <div>
+        <p style={S.label}>{cur.label}</p>
+        <h2 style={S.h2}>{cur.q}</h2>
+        <div style={{marginTop:20}}>{cur.opts.map(o=>(
+          <button key={o.id} onClick={()=>setSingle(o.id)} style={S.opt(answers[cur.id]===o.id)}>{o.t}</button>
+        ))}</div>
+      </div>}
+
+      {cur.type==='spectrums' && <div>
+        <p style={S.label}>{cur.label}</p>
+        <h2 style={S.h2}>{cur.q}</h2>
+        <p style={S.sub}>{cur.sub}</p>
+        {cur.items.map(sp=>(
+          <div key={sp.id} style={S.specRow}>
+            <input type="range" min="0" max="10" step="1"
+              value={answers.spectrums?.[sp.id]??5}
+              onChange={e=>setSpec(sp.id,e.target.value)} style={{width:'100%'}}/>
+            <div style={S.specPoles}>
+              <span style={S.specPole}>{sp.l}</span>
+              <span style={S.specPole}>{sp.r}</span>
+            </div>
+          </div>
+        ))}
+      </div>}
+
+      {cur.type==='multi' && <div>
+        <p style={S.label}>{cur.label}</p>
+        <h2 style={S.h2}>{cur.q}</h2>
+        {cur.sub && <p style={S.sub}>{cur.sub}</p>}
+        <div style={{display:'grid',gridTemplateColumns:cur.max<=5?'repeat(3,1fr)':'1fr',gap:6}}>
+          {cur.opts.map(o=>{
+            const sel=(answers[cur.id]||[]).includes(o.id)
+            const cnt=(answers[cur.id]||[]).filter(x=>x!=='none').length
+            return <button key={o.id} onClick={()=>toggleMulti(o.id)}
+              style={S.multiOpt(sel,cur.max<99?cur.max:999,cnt)}>{o.t}</button>
+          })}
         </div>
+        {cur.max<99 && <p style={S.count}>{(answers[cur.id]||[]).length} of {cur.max} selected</p>}
+      </div>}
 
-        {step === 0 && (
-          <div className="fade-up">
-            <p style={S.label}>Module 1 of 6</p>
-            <h2 style={S.h2}>Environment and workspace analysis</h2>
-            <p style={S.sub}>This module captures the physical and environmental layer of your organisational culture — workspace design, operating climate, environmental priorities, and affective response. Four exercises, approximately seven minutes.</p>
-            <p style={{fontSize:13,color:'#9B9690',lineHeight:1.7,padding:'16px 20px',background:'#fff',borderRadius:8,border:'1px solid #E8E5E0'}}>Your individual responses are anonymised and never shared. Only aggregate patterns at the department or organisational level are reported.</p>
-          </div>
+      <div style={S.nav}>
+        {step>0 && <button onClick={()=>setStep(s=>s-1)} style={S.btnS}>Back</button>}
+        <div style={{flex:1}}/>
+        {step<STEPS.length-1 ? (
+          <button onClick={()=>setStep(s=>s+1)} disabled={!canGo()} style={S.btnP(canGo())}>
+            {step===0?'Begin module':'Continue'}</button>
+        ) : (
+          <button onClick={submit} disabled={!canGo()||submitting} style={S.btnP(canGo())}>
+            {submitting?'Processing...':'Complete module'}</button>
         )}
-
-        {step === 1 && (
-          <div className="fade-up">
-            <p style={S.label}>Exercise 1 of 4</p>
-            <h2 style={S.h2}>Workspace configuration</h2>
-            <p style={S.sub}>Select the description that most closely matches your primary work environment. You may select up to two for hybrid arrangements.</p>
-            <div style={S.grid}>
-              {WORKSPACES.map(w => (
-                <button key={w.id} onClick={() => toggle(workspace, setWorkspace, w.id, 2)} style={S.optBtn(workspace.includes(w.id))}>
-                  <div style={S.optTitle}>{w.label}</div>
-                  <div style={S.optDesc}>{w.desc}</div>
-                </button>
-              ))}
-            </div>
-            <p style={S.count}>{workspace.length} of 2 selected</p>
-          </div>
-        )}
-
-        {step === 2 && (
-          <div className="fade-up">
-            <p style={S.label}>Exercise 2 of 4</p>
-            <h2 style={S.h2}>Operating climate assessment</h2>
-            <p style={S.sub}>Position your organisation on each dimension based on your direct experience.</p>
-            {SPECTRUMS.map(sp => (
-              <div key={sp.id} style={S.specRow}>
-                <div style={S.specLabel(spectrums[sp.id] !== undefined)}>{sp.label}</div>
-                <input type="range" min="0" max="10" step="1"
-                  value={spectrums[sp.id] ?? ''} 
-                  onChange={e => setSpectrums(p => ({...p,[sp.id]:parseInt(e.target.value)}))}
-                  style={{width:'100%'}} />
-                <div style={S.specPoles}>
-                  <span style={S.specPole}>{sp.left}</span>
-                  <span style={S.specPole}>{sp.right}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {step === 3 && (
-          <div className="fade-up">
-            <p style={S.label}>Exercise 3 of 4</p>
-            <h2 style={S.h2}>Environment priorities</h2>
-            <p style={S.sub}>If you could design your ideal work environment, which five elements would make the most significant difference to your effectiveness?</p>
-            <div style={S.grid3}>
-              {DESK_ITEMS.map(d => (
-                <button key={d.id} onClick={() => toggle(deskItems, setDeskItems, d.id, 5)}
-                  style={{
-                    background: deskItems.includes(d.id) ? '#EFF6FF' : '#fff',
-                    border: deskItems.includes(d.id) ? '1.5px solid #2C5282' : '1px solid #E8E5E0',
-                    borderRadius:6, padding:'12px 10px', textAlign:'center', cursor:'pointer',
-                    fontSize:12, fontWeight:500, color: deskItems.includes(d.id) ? '#1E40AF' : '#6B6660',
-                    transition:'all 0.15s',
-                    opacity: !deskItems.includes(d.id) && deskItems.length >= 5 ? 0.35 : 1,
-                  }}>
-                  {d.label}
-                </button>
-              ))}
-            </div>
-            <p style={S.count}>{deskItems.length} of 5 selected</p>
-          </div>
-        )}
-
-        {step === 4 && (
-          <div className="fade-up">
-            <p style={S.label}>Exercise 4 of 4</p>
-            <h2 style={S.h2}>Affective response</h2>
-            <p style={S.sub}>Select the three descriptors that most accurately characterise your day-to-day experience in this environment.</p>
-            <div style={S.grid3}>
-              {REACTIONS.map(r => (
-                <button key={r.id} onClick={() => toggle(reactions, setReactions, r.id, 3)}
-                  style={{
-                    ...S.tagBtn(reactions.includes(r.id), r.pos),
-                    opacity: !reactions.includes(r.id) && reactions.length >= 3 ? 0.35 : 1,
-                  }}>
-                  {r.label}
-                </button>
-              ))}
-            </div>
-            <p style={S.count}>{reactions.length} of 3 selected</p>
-          </div>
-        )}
-
-        <div style={S.navRow}>
-          {step > 0 && <button onClick={() => setStep(s=>s-1)} style={S.btnSec}>Back</button>}
-          <div style={{flex:1}} />
-          {step < 4 ? (
-            <button onClick={() => setStep(s=>s+1)} disabled={!canGo()} style={S.btnPrimary(canGo())}>
-              {step === 0 ? 'Begin assessment' : 'Continue'}
-            </button>
-          ) : (
-            <button onClick={submit} disabled={!canGo()||submitting} style={S.btnPrimary(canGo())}>
-              {submitting ? 'Processing...' : 'Complete module'}
-            </button>
-          )}
-        </div>
       </div>
-    </div>
+    </div></div>
   )
 }
