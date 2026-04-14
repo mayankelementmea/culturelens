@@ -1,8 +1,8 @@
 import './globals.css'
 
 export const metadata = {
-  title: 'CultureLens | Build Your Culture DNA',
-  description: 'A 45-minute gamified culture diagnostic by element. Visual exercises, not surveys. Unlock your personal Culture Profile.',
+  title: 'CultureLens | Organisational Culture Intelligence Platform',
+  description: 'Enterprise culture diagnostic by element. Seven-layer organisational analysis. AI-powered insights. Board-ready deliverables.',
 }
 
 export default function RootLayout({ children }) {
