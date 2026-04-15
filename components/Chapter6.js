@@ -26,7 +26,7 @@ const DENISON = [
   {id:'conviction',l:'Widespread cynicism about direction',r:'Deep shared belief in where the organisation is heading'},
 ]
 
-export default function Chapter6({ token, onComplete }) {
+export default function Chapter6({ token, onComplete, onUpdate }) {
   const [step, setStep] = useState(0) // 0=intro, 1-6=safety, 7=denison, 8=word
   const [safety, setSafety] = useState({})
   const [denison, setDenison] = useState({})

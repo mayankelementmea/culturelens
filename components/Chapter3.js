@@ -15,7 +15,7 @@ const CVF = [
 
 const ORIGINS = ['The founder — present from day one','The owning family — reflects family beliefs','The industry — standard operating norm','Current leadership — brought by this management team','The employees — emerged organically','Cannot be traced — it has always been here']
 
-export default function Chapter3({ token, onComplete }) {
+export default function Chapter3({ token, onComplete, onUpdate }) {
   const [step, setStep] = useState(0)
   const [current, setCurrent] = useState([])
   const [desired, setDesired] = useState([])
@@ -74,8 +74,8 @@ export default function Chapter3({ token, onComplete }) {
         <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:4,marginBottom:12}}>
           {POS_VALUES.map(v=>{const sel=current.includes(v);return(
             <button key={v} onClick={()=>toggleVal(current,setCurrent,v,10)} style={{
-              background:sel?'#E1F5EE':'#fff',border:sel?'1.5px solid #0D9488':'1px solid #E8E5E0',
-              borderRadius:4,padding:'8px 4px',fontSize:11,color:sel?'#085041':'#6B6660',
+              background:sel?'var(--bg-elevated)':'var(--bg-card)',border:sel?'1px solid var(--accent-teal)':'1px solid var(--border)',
+              borderRadius:4,padding:'8px 4px',fontSize:11,color:sel?'var(--accent-teal)':'var(--text-secondary)',
               cursor:'pointer',fontWeight:sel?500:400,opacity:!sel&&current.length>=10?.35:1,
             }}>{v}</button>
           )})}
@@ -84,8 +84,8 @@ export default function Chapter3({ token, onComplete }) {
         <div style={{display:'grid',gridTemplateColumns:'repeat(5,1fr)',gap:4}}>
           {LIM_VALUES.map(v=>{const sel=current.includes(v);return(
             <button key={v} onClick={()=>toggleVal(current,setCurrent,v,10)} style={{
-              background:sel?'#FEF2F2':'#fff',border:sel?'1.5px solid #DC2626':'1px solid #E8E5E0',
-              borderRadius:4,padding:'8px 4px',fontSize:11,color:sel?'#791F1F':'#6B6660',
+              background:sel?'var(--bg-elevated)':'var(--bg-card)',border:sel?'1px solid var(--accent-coral)':'1px solid var(--border)',
+              borderRadius:4,padding:'8px 4px',fontSize:11,color:sel?'var(--accent-coral)':'var(--text-secondary)',
               cursor:'pointer',fontWeight:sel?500:400,opacity:!sel&&current.length>=10?.35:1,
             }}>{v}</button>
           )})}

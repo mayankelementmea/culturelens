@@ -77,7 +77,7 @@ const STEPS = [
     ]},
 ]
 
-export default function Chapter1({ token, onComplete }) {
+export default function Chapter1({ token, onComplete, onUpdate }) {
   const [step, setStep] = useState(0)
   const [answers, setAnswers] = useState({})
   const [submitting, setSubmitting] = useState(false)
@@ -102,6 +102,30 @@ export default function Chapter1({ token, onComplete }) {
     if(cur.type==='spectrums') return Object.keys(answers.spectrums||{}).length===cur.items.length
     if(cur.type==='multi') return (answers[cur.id]||[]).length>0
     return false
+  }
+
+  
+  // Update canvas progressively
+  const updateCanvas = () => {
+    if (!onUpdate) return
+    const out = {}
+    if (answers.decision_architecture) out.decision_architecture = answers.decision_architecture
+    if (answers.information_flow) out.information_flow = answers.information_flow
+    if (answers.crisis_response) out.crisis_response = answers.crisis_response
+    if (answers.talent_philosophy) out.talent_philosophy = answers.talent_philosophy
+    if (answers.spectrums) out.spectrums = answers.spectrums
+    if (answers.capability_gaps) out.capability_gaps = answers.capability_gaps
+    if (answers.unwritten_rules) {
+      const rules = answers.unwritten_rules
+      const ruleMap = {'r1':"Don't challenge senior decisions",'r2':'Relationships > qualifications','r3':'Visible presence matters','r4':'Bad news filtered','r5':'Problems need solutions','r6':'Bypass formal process','r7':'Risk-failure career-limiting','r8':'Tenure > competence','r9':'Stay in your lane','r10':"Founder's way unquestioned",'r11':'Overpromise'}
+      out.unwritten_rules = rules.map(r => ruleMap[r] || r)
+    }
+    onUpdate(out)
+  }
+  
+  // Call updateCanvas whenever answers change
+  if (typeof window !== 'undefined') {
+    try { updateCanvas() } catch(e) {}
   }
 
   const submit = async () => {

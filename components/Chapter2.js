@@ -78,7 +78,7 @@ const ALLOC_CATS = [
   'Crisis management and firefighting',
 ]
 
-export default function Chapter2({ token, onComplete }) {
+export default function Chapter2({ token, onComplete, onUpdate }) {
   const [step, setStep] = useState(0) // 0=intro, 1-4=scenarios(dp1), 5-8=scenarios(dp2), 9=allocation
   const [answers, setAnswers] = useState({})
   const [alloc, setAlloc] = useState(ALLOC_CATS.map(()=>12))

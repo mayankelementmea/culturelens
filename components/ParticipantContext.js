@@ -48,7 +48,7 @@ export default function ParticipantContext({ onComplete }) {
 
       <p style={{...S.label, marginTop:32}}>Department / function</p>
       <select value={dept} onChange={e => setDept(e.target.value)}
-        style={{...S.input, cursor:'pointer', color: dept?'#3D3A36':'#9B9690'}}>
+        style={{...S.input, cursor:'pointer', color: dept?'var(--text-primary)':'var(--text-muted)'}}>
         <option value="">Select your department</option>
         {DEPTS.map(d => <option key={d} value={d}>{d}</option>)}
       </select>

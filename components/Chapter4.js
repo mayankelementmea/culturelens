@@ -11,7 +11,7 @@ const DRIFT = [
   {id:'external',l:'We solve our own problems',r:'We bring in the best, wherever they are'},
 ]
 
-export default function Chapter4({ token, onComplete }) {
+export default function Chapter4({ token, onComplete, onUpdate }) {
   const [step, setStep] = useState(0)
   const [stories, setStories] = useState({})
   const [driftOrig, setDriftOrig] = useState({})

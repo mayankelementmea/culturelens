@@ -11,7 +11,7 @@ const NETWORKS = [
     q:'Think about the people who raise the performance and morale of everyone around them. Who are the three people who contribute most to the organisation\'s energy and cohesion?'},
 ]
 
-export default function Chapter5({ token, onComplete }) {
+export default function Chapter5({ token, onComplete, onUpdate }) {
   const [step, setStep] = useState(0)
   const [data, setData] = useState({})
   const [submitting, setSubmitting] = useState(false)
