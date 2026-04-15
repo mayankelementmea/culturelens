@@ -1,5 +1,5 @@
 'use client'
-import { useState, Suspense } from 'react'
+import { Suspense } from 'react'
 import dynamic from 'next/dynamic'
 
 const CultureLensApp = dynamic(() => import('@/components/CultureLensApp'), { ssr: false })
@@ -7,7 +7,7 @@ const CultureLensApp = dynamic(() => import('@/components/CultureLensApp'), { ss
 export default function ChapterPage() {
   return (
     <Suspense fallback={
-      <div style={{minHeight:'100vh',background:'#08090C',display:'flex',alignItems:'center',justifyContent:'center',color:'#706F73',fontFamily:"'Outfit',sans-serif"}}>
+      <div style={{minHeight:'100vh',background:'#FEFCE8',display:'flex',alignItems:'center',justifyContent:'center',color:'#94A3B8',fontFamily:"'Nunito',sans-serif",fontSize:16}}>
         Loading CultureLens...
       </div>
     }>
